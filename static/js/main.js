@@ -1,6 +1,4 @@
-var mainImage;
-var errorImage;
-var diffImage;
+var originalImage;
 var isMainImage = true;
 
 window.onload = function() {
@@ -11,46 +9,30 @@ window.onload = function() {
     };
   };
 
-function ELAAlgorithm(src, err, diff) {
+function ELAAlgorithm(src, err) {
+    let diff = src.clone();
     // Calculate difference between mainImage and errorImage
     cv.addWeighted(src, 1, err, -1, 0, diff);
+    let tempImg = diff.clone();
+    cv.multiply(diff, diff, tempImg);
+    diff = tempImg.clone();
+    tempImg.delete();
 
-    // Calculate adaptive threshold of the JPEG error difference
-    let diffThresh = new cv.Mat();
-    cv.cvtColor(diff, diffThresh, cv.COLOR_RGBA2GRAY, 0);
-    cv.adaptiveThreshold(diffThresh, diffThresh, 252, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 7, 5);
+   
+    cv.addWeighted(src, 1, diff, 1, 0, diff);
 
-    // let ones = new cv.Mat(diffImage.rows, diffImage.cols, diffImage.type(), [0, 0, 0, 0]);
-    // Invert the thresholded image so when added to the main image, the "valid" pixels will be darker
-    cv.bitwise_not(diffThresh, diffThresh);
-
-    // Prepare threshold to add to main image
-    cv.GaussianBlur(diffThresh, diffThresh, {width: 3, height: 3}, 0);
-    cv.cvtColor(diffThresh, diffThresh, cv.COLOR_GRAY2RGBA, 0);
-    
-    cv.addWeighted(src, 0.6, diffThresh, 0.6, 0, diff);
-
-    // console.log("diffImage", diffImage);
-
-    // cv.imshow("mainCanvas", diffImage);
-    diffThresh.delete();
     return diff
 }
 
 
-function DoELA() {
+function DoELA(canvas, image, elaLevel = 0.3) {
     console.log("ELA button clicked");
 
-    mainImage = new cv.Mat();
-    errorImage = new cv.Mat();
-    diffImage = new cv.Mat();
-
-    let canvas = document.getElementById('mainCanvas');    
-    mainImage = cv.imread("mainCanvas");
-
+    let errorImage = new cv.Mat();
+    
     // Write to canvas and dump canvas content to a JPEG
-    cv.imshow("mainCanvas", mainImage);
-    let jpeg = canvas.toDataURL("image/jpeg", 0.1);
+    cv.imshow("mainCanvas", image);
+    let jpeg = canvas.toDataURL("image/jpeg", elaLevel);
 
     // Read dumped JPEG
     let jpegImg = new Image();
@@ -58,9 +40,11 @@ function DoELA() {
     jpegImg.onload = function() {
         
         errorImage = cv.imread(jpegImg);
-        ELAAlgorithm(mainImage, errorImage, diffImage);
+
+        let outImg = ELAAlgorithm(image, errorImage);
         
-        cv.imshow("mainCanvas", diffImage);
+        cv.imshow("mainCanvas", outImg);
+        errorImage.delete();
     }
 }
 
@@ -73,6 +57,19 @@ function GetLowQImg() {
     };
 }
 
+function ELALevelCallback() {
+    let ELAValue = document.getElementById('ELAValue');
+    let trackbar = document.getElementById("trackbar");
+    ELAValue.setAttribute('value', trackbar.value);
+
+    let alpha = trackbar.value / trackbar.max;
+
+    let canvas = document.getElementById('mainCanvas');
+    let image = originalImage.clone();
+
+    DoELA(canvas, image, alpha);
+}
+
 function DrawOnCanvas(dataURL) {
     var canvas = document.getElementById('mainCanvas');    
     var context = canvas.getContext('2d');
@@ -83,7 +80,10 @@ function DrawOnCanvas(dataURL) {
         canvas.height = this.height;
         context.drawImage(this, 0, 0, this.width, this.height);
 
-        DoELA();
+        let src = cv.imread("mainCanvas");
+        originalImage = src.clone();
+
+        DoELA(canvas, src);
     };
     imageObj.src = dataURL;
 }
@@ -97,7 +97,6 @@ var openFile = function(file) {
         // var output = document.getElementById('output');
         // output.src = dataURL;
         DrawOnCanvas(reader.result);
-        // DrawOnCanvasCV();
     };
     reader.readAsDataURL(input.files[0]);
 };
@@ -123,10 +122,10 @@ var canvasMouseOver = function(e) {
 
 // Show mainImage if mouse pointer is over the canvas, otherwise show errorImage
 var bodyMouseMove = function(e) {
-    if (e.target.id == 'mainCanvas') {
-        cv.imshow("mainCanvas", mainImage);
-    } else {
-        cv.imshow("mainCanvas", diffImage);
-    }
+    // if (e.target.id == 'mainCanvas') {
+    //     cv.imshow("mainCanvas", mainImage);
+    // } else {
+    //     cv.imshow("mainCanvas", diffImage);
+    // }
 
 }
