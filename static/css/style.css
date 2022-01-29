@@ -38,12 +38,12 @@ input {
     text-align: center;
 }
 
-#mainCanvas {
+canvas {
     height: auto;
+    max-width: 50%;
     max-height: 30%;
     display: inline;
     margin: auto;
-    background-color: white;
 }
 
 @media (max-width: 700px) {

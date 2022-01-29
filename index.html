@@ -18,14 +18,14 @@
             <h2>Web ELA Tool</h2>
             <p>This tool can be used to analyze JPEG images to detect possible tampered areas in the images.</p>
         </div>
-        <div class="row justify-content-center">
-            <div class="col-sm-6">
-                <button class="btn btn-primary" id="upload-button">Upload</button>
-                <input id="fileInput" type='file' accept='image/*' onchange='openFile(event)' style="display:none">
-            </div>
-            <div class="col-sm-6">
+        <div class="row justify-content-center align-items-center">
+            <div class="col-sm-6 text-end">
                 <input type="range" id="trackbar" value="50" min="0" max="100" step="1" oninput="ELALevelCallback()">
                 <input type="text" id="ELAValue" size="3" value="50" />
+            </div>
+            <div class="col-sm-6 text-end">
+                <button class="btn btn-primary" id="upload-button">Upload</button>
+                <input id="fileInput" type='file' accept='image/*' onchange='openFile(event)' style="display:none">
             </div>
             <!-- <div class="col-*">
 
@@ -34,6 +34,7 @@
     </div>
 
     <div id="canvas-container" class="container d-flex">
+        <canvas id="rawCanvas"></canvas>
         <canvas id="mainCanvas" onclick="canvasClick(event)"></canvas>
     </div>
 

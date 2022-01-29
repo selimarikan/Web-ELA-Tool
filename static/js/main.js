@@ -83,6 +83,8 @@ function DrawOnCanvas(dataURL) {
         let src = cv.imread("mainCanvas");
         originalImage = src.clone();
 
+        cv.imshow("rawCanvas", originalImage);
+
         DoELA(canvas, src);
     };
     imageObj.src = dataURL;
