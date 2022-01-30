@@ -1,9 +1,9 @@
 # Web-ELA-Tool
 
-A web implementation of ELA (Error Level Analysis) tool for JPEG image tamper detection.
+A web-UI implementation of ELA (Error Level Analysis) tool for JPEG image tamper analysis.
 
-- OpenCV
-- Bootstrap
+- OpenCV.js
+- Bootstrap 5
 
 
 ## Future Updates
